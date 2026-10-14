@@ -1,0 +1,226 @@
+$C = "../Common.ui";
+
+@SectionLabel = Label {
+  Anchor: (Bottom: 7);
+  Style: (...$C.@DefaultLabelStyle, RenderBold: true);
+};
+
+@Separator = Group {
+  Anchor: (Vertical: 16, Height: 1);
+  Background: #5e512c;
+};
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  $C.@DecoratedContainer {
+    Anchor: (Width: 560);
+
+    #Title {
+      $C.@Title {
+        @Text = %server.customUI.teleporter.title;
+      }
+    }
+
+    #Content {
+      LayoutMode: Top;
+      Padding: (Full: 16);
+
+      Group #ErrorScreen {
+        LayoutMode: Top;
+        Visible: false;
+
+        Label {
+          Text: %server.customUI.teleporter.error;
+          Anchor: (Bottom: 16);
+          Style: (...$C.@DefaultLabelStyle, RenderBold: true);
+        }
+      }
+
+      Group #LockedScreen {
+        LayoutMode: Top;
+        Visible: false;
+
+        Label #LockedLabel {
+          Text: "This teleporter is private.";
+          Anchor: (Bottom: 16);
+          Style: (...$C.@DefaultLabelStyle, RenderBold: true, Wrap: true);
+        }
+      }
+
+      Group #Settings {
+        LayoutMode: Top;
+
+        // Owners and admins only. Each tab has a plain button and a highlighted one for when it's
+        // open; the server shows one of the pair.
+        Group #TabBar {
+          LayoutMode: Left;
+          Anchor: (Height: 32, Bottom: 14);
+          Visible: false;
+
+          $C.@SmallTertiaryTextButton #DestinationTab {
+            @Anchor = (Width: 140, Right: 6);
+            Text: "Destination";
+          }
+          $C.@SmallSecondaryTextButton #DestinationTabActive {
+            @Anchor = (Width: 140, Right: 6);
+            Text: "Destination";
+          }
+          $C.@SmallTertiaryTextButton #PermissionsTab {
+            @Anchor = (Width: 140, Right: 6);
+            Text: "Permissions";
+          }
+          $C.@SmallSecondaryTextButton #PermissionsTabActive {
+            @Anchor = (Width: 140, Right: 6);
+            Text: "Permissions";
+            Visible: false;
+          }
+          $C.@SmallTertiaryTextButton #OwnershipTab {
+            @Anchor = (Width: 140, Right: 6);
+            Text: "Ownership";
+          }
+          $C.@SmallSecondaryTextButton #OwnershipTabActive {
+            @Anchor = (Width: 140, Right: 6);
+            Text: "Ownership";
+            Visible: false;
+          }
+        }
+
+        // When tabs are shown, the server fixes this to the tallest tab's height so the window
+        // doesn't change size when switching tabs.
+        Group #Pages {
+          LayoutMode: Top;
+
+          Group #DestinationPage {
+            LayoutMode: Top;
+
+            @SectionLabel {
+              Text: %server.customUI.teleporter.targetWarp;
+            }
+
+            $C.@DropdownBox #WarpDropdown {
+              @Anchor = (Left: 5, Bottom: 8);
+              NoItemsText: %server.customUI.dropdown.noItems;
+            }
+
+            Group #NameSection {
+              LayoutMode: Top;
+
+              @Separator {}
+
+              @SectionLabel {
+                Text: %server.customUI.teleporter.warpName;
+              }
+
+              $C.@TextField #NewWarp {
+                @Anchor = (Left: 0, Right: 16);
+                PlaceholderText: %server.customUI.teleporter.warpName;
+              }
+            }
+          }
+
+          Group #PermissionsPage {
+            LayoutMode: Top;
+            Visible: false;
+
+            @SectionLabel {
+              Text: "Who can use it";
+            }
+
+            // The template fixes dropdowns at 330 wide, too narrow for these labels, so replace its anchor.
+            $C.@DropdownBox #AccessDropdown {
+              Anchor: (Left: 5, Bottom: 8, Width: 500, Height: 32);
+            }
+
+            Group #SharingSection {
+              LayoutMode: Top;
+              Anchor: (Top: 8);
+
+              @SectionLabel {
+                Text: "Shared with";
+              }
+
+              Group #SharedList {
+                LayoutMode: TopScrolling;
+                Anchor: (Height: 110, Bottom: 8, Left: 5, Right: 16);
+                ScrollbarStyle: $C.@DefaultScrollbarStyle;
+              }
+
+              Group {
+                LayoutMode: Left;
+                Anchor: (Left: 5, Height: 32);
+
+                $C.@DropdownBox #PlayerDropdown {
+                  @Anchor = (Right: 8);
+                  NoItemsText: "No other players yet";
+                }
+
+                $C.@SmallSecondaryTextButton #AddButton {
+                  Text: "Share";
+                }
+              }
+            }
+          }
+
+          Group #OwnershipPage {
+            LayoutMode: Top;
+            Visible: false;
+
+            Label #OwnerLabel {
+              Text: "";
+              Style: (...$C.@DefaultLabelStyle, RenderItalics: true);
+            }
+
+            Group #GiveUpSection {
+              LayoutMode: Top;
+              Visible: false;
+
+              @Separator {}
+
+              @SectionLabel {
+                Text: "Give up ownership";
+              }
+
+              Label {
+                Text: "Makes it public with no owner. The next player to open this menu becomes the owner. This happens right away and closes the menu.";
+                Anchor: (Bottom: 8);
+                Style: (FontSize: 14, TextColor: #878e9c, Wrap: true);
+              }
+
+              Group {
+                LayoutMode: Left;
+                Anchor: (Left: 5, Height: 32);
+
+                $C.@SmallSecondaryTextButton #RelinquishButton {
+                  Text: "Give up ownership";
+                }
+              }
+            }
+          }
+        }
+
+        Label #ErrorLabel {
+          Text: "";
+          Style: (FontSize: 18, TextColor: #bb3333, RenderBold: true);
+          Anchor: (Top: 8);
+          Visible: false;
+        }
+      }
+
+      Group #Buttons {
+        LayoutMode: Top;
+
+        Group {
+          Anchor: (Top: 16, Bottom: 16, Height: 1);
+          Background: #5e512c;
+        }
+
+        $C.@TextButton #SaveButton {
+          Text: %server.customUI.saveChanges;
+        }
+      }
+    }
+  }
+}
+
+$C.@BackButton {}

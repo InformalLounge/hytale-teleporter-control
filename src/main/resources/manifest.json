@@ -1,0 +1,14 @@
+{
+  "Group": "InformalLounge",
+  "Name": "TeleporterControl",
+  "Version": "${version}",
+  "Description": "Unlimited teleporters with owners, private access and sharing.",
+  "Authors": [{ "Name": "Informal Lounge" }],
+  "Main": "com.informallounge.teleportercontrol.TeleporterControlPlugin",
+  "ServerVersion": "*",
+  "Dependencies": {
+    "Hytale:Teleporter": "*",
+    "Hytale:Teleport": "*"
+  },
+  "IncludesAssetPack": true
+}

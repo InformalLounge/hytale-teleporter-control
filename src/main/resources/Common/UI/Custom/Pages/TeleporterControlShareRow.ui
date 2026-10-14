@@ -1,0 +1,16 @@
+$C = "../Common.ui";
+
+Group {
+  LayoutMode: Left;
+  Padding: (Vertical: 3);
+
+  Label #Name {
+    FlexWeight: 1;
+    Anchor: (Height: 32);
+    Style: (FontSize: 16, TextColor: #d3d6db, VerticalAlignment: Center);
+  }
+
+  $C.@SmallTertiaryTextButton #RemoveButton {
+    Text: "Remove";
+  }
+}

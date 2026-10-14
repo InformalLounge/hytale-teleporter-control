@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+}
+
+group = 'lounge'
+version = '1.0.0'
+
+// Compile against the exact server you run. Override with -PhytaleServerJar=/path/to/HytaleServer.jar
+def defaultServerJar = "${System.getProperty('user.home')}/Library/Application Support/Hytale/install/release/package/game/latest/Server/HytaleServer.jar"
+def serverJar = file(findProperty('hytaleServerJar') ?: defaultServerJar)
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly files(serverJar)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('manifest.json') {
+        expand version: project.version
+    }
+}

@@ -1,0 +1,94 @@
+name: Hytale update check
+
+# Once a day, look for a Hytale server release newer than hytaleVersion in gradle.properties.
+# If there is one, try building the mod against it and open an issue with the result.
+on:
+  schedule:
+    - cron: '17 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compare versions
+        id: versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pinned=$(grep '^hytaleVersion=' gradle.properties | cut -d= -f2)
+          latest=$(curl -fsSL https://maven.hytale.com/release/com/hypixel/hytale/Server/maven-metadata.xml \
+            | sed -n 's:.*<release>\(.*\)</release>.*:\1:p')
+          echo "Pinned: $pinned, latest: $latest"
+          if [ -z "$latest" ]; then
+            echo "::error::Could not read the latest version from maven.hytale.com"
+            exit 1
+          fi
+
+          newest=$(printf '%s\n%s\n' "$pinned" "$latest" | sort -V | tail -n1)
+          title="Hytale $latest is out (mod targets $pinned)"
+          if [ "$latest" = "$pinned" ] || [ "$newest" != "$latest" ]; then
+            echo "Up to date."
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          elif gh issue list --state all --search "in:title \"Hytale $latest is out\"" --json number --jq 'length' | grep -qv '^0$'; then
+            echo "An issue for $latest already exists."
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "pinned=$pinned" >> "$GITHUB_OUTPUT"
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          echo "title=$title" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-java@v4
+        if: steps.versions.outputs.new == 'true'
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.versions.outputs.new == 'true'
+
+      - name: Test build against the new version
+        id: build
+        if: steps.versions.outputs.new == 'true'
+        run: |
+          set +e
+          ./gradlew build -PhytaleVersion="${{ steps.versions.outputs.latest }}" > build.log 2>&1
+          if [ $? -eq 0 ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "ok=false" >> "$GITHUB_OUTPUT"; fi
+          tail -n 60 build.log
+
+      - name: Open issue
+        if: steps.versions.outputs.new == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PINNED: ${{ steps.versions.outputs.pinned }}
+          LATEST: ${{ steps.versions.outputs.latest }}
+          TITLE: ${{ steps.versions.outputs.title }}
+          OK: ${{ steps.build.outputs.ok }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          {
+            echo "Hytale **$LATEST** has been released. The mod currently compiles against **$PINNED**."
+            echo
+            if [ "$OK" = "true" ]; then
+              echo "✅ The mod **builds** against $LATEST without changes."
+              echo
+              echo "To update, set \`hytaleVersion=$LATEST\` in \`gradle.properties\`. A clean build only means the code still compiles,"
+              echo "so test it in-game before releasing, especially the teleporter menu and access checks."
+            else
+              echo "❌ The mod **does not build** against $LATEST. Hytale's API probably changed. The last lines of the build log:"
+              echo
+              echo '```'
+              grep -E 'error:|FAILED|What went wrong' -A3 build.log | head -n 60
+              echo '```'
+            fi
+            echo
+            echo "[Full log]($RUN_URL)"
+          } > body.md
+          gh issue create --title "$TITLE" --body-file body.md

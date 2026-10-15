@@ -1,6 +1,7 @@
 package com.informallounge.teleportercontrol;
 
 import com.hypixel.hytale.builtin.adventure.teleporter.component.Teleporter;
+import com.hypixel.hytale.builtin.adventure.teleporter.page.TeleporterSettingsPageSupplier;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.ComponentAccessor;
@@ -12,7 +13,6 @@ import com.hypixel.hytale.protocol.BlockPosition;
 import com.hypixel.hytale.server.core.entity.InteractionContext;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.CustomUIPage;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
-import com.hypixel.hytale.server.core.modules.interaction.interaction.config.server.OpenCustomUIInteraction;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockComponentSection;
@@ -21,12 +21,15 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-/** Opens {@link TeleporterControlPage} for the teleporter block being used. Mirrors the vanilla supplier. */
-public class TeleporterControlPageSupplier implements OpenCustomUIInteraction.CustomPageSupplier {
+/**
+ * Opens {@link TeleporterControlPage} for the teleporter block being used. Mirrors the vanilla supplier, and
+ * extends it so the vanilla item's page settings ("Create", "Mode") still decode. They aren't used.
+ */
+public class TeleporterControlPageSupplier extends TeleporterSettingsPageSupplier {
 
     @Nonnull
     public static final BuilderCodec<TeleporterControlPageSupplier> CODEC =
-        BuilderCodec.builder(TeleporterControlPageSupplier.class, TeleporterControlPageSupplier::new).build();
+        BuilderCodec.builder(TeleporterControlPageSupplier.class, TeleporterControlPageSupplier::new, TeleporterSettingsPageSupplier.CODEC).build();
 
     @Override
     @Nullable

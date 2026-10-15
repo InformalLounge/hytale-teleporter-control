@@ -2,12 +2,7 @@ plugins {
     id 'java'
 }
 
-group = 'lounge'
-version = '1.0.0'
-
-// Compile against the exact server you run. Override with -PhytaleServerJar=/path/to/HytaleServer.jar
-def defaultServerJar = "${System.getProperty('user.home')}/Library/Application Support/Hytale/install/release/package/game/latest/Server/HytaleServer.jar"
-def serverJar = file(findProperty('hytaleServerJar') ?: defaultServerJar)
+group = 'com.informallounge'
 
 java {
     toolchain {
@@ -17,10 +12,21 @@ java {
 
 repositories {
     mavenCentral()
+    maven {
+        name = 'hytale'
+        url = 'https://maven.hytale.com/release'
+    }
 }
 
 dependencies {
-    compileOnly files(serverJar)
+    // Compiles against hytaleVersion from gradle.properties.
+    // To use a local server jar instead: -PhytaleServerJar=/path/to/HytaleServer.jar
+    def localServerJar = findProperty('hytaleServerJar')
+    if (localServerJar) {
+        compileOnly files(localServerJar)
+    } else {
+        compileOnly "com.hypixel.hytale:Server:${hytaleVersion}"
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {

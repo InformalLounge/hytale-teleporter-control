@@ -13,13 +13,18 @@ import javax.annotation.Nonnull;
 /**
  * Unlimited, ownable teleporters.
  *
- * The bundled asset pack removes the placement cap and points the Teleporter block at
- * {@link ControlledTeleporterInteraction} and {@link TeleporterControlPage} instead of the vanilla ones.
+ * The bundled asset pack removes the placement cap. The vanilla "Teleporter" interaction and page types are
+ * re-registered to {@link ControlledTeleporterInteraction} and {@link TeleporterControlPageSupplier}, so the
+ * vanilla Teleporter item uses them without the mod shipping a copy of it. Registering an existing type id
+ * replaces it, and this plugin's setup runs after Hytale:Teleporter's because it depends on it.
  */
 public class TeleporterControlPlugin extends JavaPlugin {
 
     /** Can use and manage every teleporter. Operators normally have it through "*". */
     public static final String ADMIN_PERMISSION = "teleportercontrol.admin";
+
+    /** The interaction type and page id the vanilla Teleporter item uses. */
+    private static final String VANILLA_TYPE_ID = "Teleporter";
 
     private static TeleporterControlPlugin instance;
     private AccessStore accessStore;
@@ -50,8 +55,8 @@ public class TeleporterControlPlugin extends JavaPlugin {
         this.getChunkStoreRegistry().registerSystem(new OwnershipSystems.Placed(this.accessStore));
         this.getChunkStoreRegistry().registerSystem(new OwnershipSystems.Removed(this.accessStore));
 
-        this.getCodecRegistry(Interaction.CODEC).register("ControlledTeleporter", ControlledTeleporterInteraction.class, ControlledTeleporterInteraction.CODEC);
-        this.getCodecRegistry(OpenCustomUIInteraction.PAGE_CODEC).register("TeleporterControl", TeleporterControlPageSupplier.class, TeleporterControlPageSupplier.CODEC);
+        this.getCodecRegistry(Interaction.CODEC).register(VANILLA_TYPE_ID, ControlledTeleporterInteraction.class, ControlledTeleporterInteraction.CODEC);
+        this.getCodecRegistry(OpenCustomUIInteraction.PAGE_CODEC).register(VANILLA_TYPE_ID, TeleporterControlPageSupplier.class, TeleporterControlPageSupplier.CODEC);
 
         this.getEventRegistry().registerGlobal(PlayerConnectEvent.class, event -> {
             PlayerRef player = event.getPlayerRef();
